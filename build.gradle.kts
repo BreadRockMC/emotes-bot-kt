@@ -18,9 +18,19 @@ dependencies {
     implementation(group = "net.dv8tion", name = "JDA", version = project.property("jda_version") as String)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
+
+    // findbugs, kotlin can use nullability annotations
+    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
 tasks {
+
+    test {
+        useJUnitPlatform()
+    }
+
     withType<JavaCompile>().configureEach {
         options.release.set(java.targetCompatibility.majorVersion.toInt())
     }
