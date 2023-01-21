@@ -1,5 +1,8 @@
 package dev.kosmx.discordBot
 
+import dev.kosmx.discordBot.actions.MailBot
+import dev.kosmx.discordBot.actions.initAdminCommands
+import dev.kosmx.discordBot.brigadier.BrigadierConnector
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -12,9 +15,19 @@ import java.io.File
 fun main(args: Array<String>) {
     val parser = ArgParser("Emotes bot")
 
-    val configFile: String by parser.option(ArgType.String, fullName = "configFile", shortName = "c").default("bot.config")
+    val configFile: String by parser.option(ArgType.String, fullName = "configFile", shortName = "c").default("bot.config.json")
 
     parser.parse(args)
+    BotEventHandler.LOGGER.info("")
 
-    val config = Json.decodeFromStream<BotConfig>(File(configFile).inputStream())
+    val config = File(configFile).inputStream().use { input ->
+        Json.decodeFromStream<BotConfig>(input)
+    }
+
+    initAdminCommands(BotEventHandler)
+    BrigadierConnector(BotEventHandler)
+    MailBot(BotEventHandler)
+
+    BotEventHandler.start(config)
+
 }

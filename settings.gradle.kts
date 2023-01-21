@@ -4,4 +4,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "emotes_kt"
+rootProject.name = "emotes-bot-kt"

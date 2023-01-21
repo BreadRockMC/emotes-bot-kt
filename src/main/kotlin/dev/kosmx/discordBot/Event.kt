@@ -14,6 +14,12 @@ class Event<T>: Iterable<T> {
         orderedList = null
     }
 
+    fun registerSubscribers(priority: Int, vararg functions: T) {
+        for (i in functions.indices) {
+            this[i + priority] = functions[i]
+        }
+    }
+
     operator fun get(i: Int) = subscribersMap[i]
 
     val indices: List<Int>
@@ -29,7 +35,6 @@ class Event<T>: Iterable<T> {
         }
 
     override fun iterator(): Iterator<T> = toList().iterator()
-
 
 }
 operator fun <X, P> Event<out (X) -> TypedEventResult<P>>.invoke(x: X): TypedEventResult<P> {
@@ -58,5 +63,10 @@ fun <T, P> Event<(T) -> TypedEventResult<P>>.subscribe(index: Int, f: (T) -> P? 
     )
 }
 
-open class EventResult(open val consume: Boolean = false)
+open class EventResult(open val consume: Boolean = false) {
+    companion object {
+        val PASS = EventResult(consume = false)
+        val CONSUME = EventResult(consume = true)
+    }
+}
 class TypedEventResult<T>(val t: T?, override val consume: Boolean = t != null) : EventResult()
