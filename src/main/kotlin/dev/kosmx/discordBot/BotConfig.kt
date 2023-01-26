@@ -15,6 +15,7 @@ data class BotConfig(
     val ownerServers: Set<ULong>,
     var mailChannel: ULong,
     var commandStart: String = "?",
+    val botAdmins: Set<ULong>
 ) {
 
     @Transient

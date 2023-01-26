@@ -7,7 +7,7 @@ import java.lang.Exception
 
 object BrigadierConnector {
     operator fun invoke(bot: BotEventHandler) {
-        bot.messageReceivedEvent[10] = { event ->
+        bot.messageReceivedEvent[10] = parse@{ event ->
             try {
                 if (event.message.contentRaw.startsWith(bot.config.commandStart) && event.message.contentRaw.length > bot.config.commandStart.length) {
                     //bot.LOGGER.info("Executing command: ${event.message.contentRaw}")
@@ -16,12 +16,12 @@ object BrigadierConnector {
                         DiscordCommandSource(event.author, event)
                     )
 
-                    EventResult.CONSUME
+                    return@parse EventResult.CONSUME
                 }
             } catch (e: Exception) {
                 event.message.addReaction(Emoji.fromUnicode("U+2753")).queue() // note invalid command but don't annoy anyone
             }
-            EventResult.PASS
+            return@parse EventResult.PASS
         }
     }
 }

@@ -13,8 +13,6 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
@@ -31,6 +29,7 @@ object BotEventHandler: EventListener {
 
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
+
 
     private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
         (commands + ownerServerCommands).associate {
@@ -52,19 +51,6 @@ object BotEventHandler: EventListener {
         commands += SlashCommand("ping", "quick self test") {
             it.reply("pong\nclient latency: ${it.jda.gatewayPing}").queue()
         }
-
-        ownerServerCommands += object : SlashCommand("hello", "say hello") {
-
-            val user = option("user", "user name", OptionType.USER, OptionMapping::getAsUser).required()
-            val age = option("age", "user age", OptionType.INTEGER, OptionMapping::getAsInt)
-
-            override fun invoke(event: SlashCommandInteractionEvent) {
-                event.reply("Hello ${event[user].name} ${
-                    event[age]?.let { "\n$it years old" } ?: ""
-                }").setEphemeral(true).queue()
-            }
-        }
-
 
     }
 

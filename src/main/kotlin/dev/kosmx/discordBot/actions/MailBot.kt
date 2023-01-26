@@ -90,7 +90,7 @@ object MailBot {
         bot.messageReceivedEvent[40] = { event ->
             if (event.channel.idLong == bot.config.mailChannel.toLong()) {
                 event.message.referencedMessage?.let { referenceMessage ->
-                    if (referenceMessage.mentions.users.size > 0) {
+                    if (referenceMessage.author.idLong == event.jda.selfUser.idLong && referenceMessage.mentions.users.size > 0) {
                         referenceMessage.mentions.users[0].openPrivateChannel().queue { targetChannel ->
                             sendMail(message = event.message, targetChannel = targetChannel)
                         }
