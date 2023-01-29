@@ -15,7 +15,9 @@ data class BotConfig(
     val ownerServers: Set<ULong>,
     var mailChannel: ULong,
     var commandStart: String = "?",
-    val botAdmins: Set<ULong>
+    val botAdmins: Set<ULong>,
+    val logLink: String = "https://emotes.kosmx.dev/guide/logs",
+    val embedColor: String = "#03FCC2" //HEX VALUE
 ) {
 
     @Transient

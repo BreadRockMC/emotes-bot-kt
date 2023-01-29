@@ -14,11 +14,37 @@ fun initUserCommands(bot: BotEventHandler) {
         val message = option("message", "message", OptionType.STRING, OptionMapping::getAsString).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
-            val embed = EmbedBuilder()
-            embed.setAuthor(event.interaction.member?.effectiveName)
-            embed.setColor(Color(15105570))
-            embed.setDescription(event[message])
+            val embed = EmbedBuilder().apply {
+                setAuthor(event.interaction.member?.effectiveName)
+                setColor(Color.getColor(bot.config.embedColor))
+                setDescription(event[message])
+            }
             event.interaction.replyEmbeds(embed.build()).queue()
+        }
+    }
+
+    bot.ownerServerCommands += object : SlashCommand("logs", "How do I send logs?") {
+        override fun invoke(event: SlashCommandInteractionEvent) {
+            event.interaction.reply(bot.config.logLink).setEphemeral(true).queue()
+        }
+    }
+
+    bot.ownerServerCommands += object : SlashCommand("postemote", "Send an emote embed to the channel") {
+        val emoteTitle = option("title", "title", OptionType.STRING, OptionMapping::getAsString).required()
+        val jsonFile = option("jsonfile", "jsonFile", OptionType.ATTACHMENT, OptionMapping::getAsAttachment).required()
+        val image = option("image", "image", OptionType.ATTACHMENT, OptionMapping::getAsAttachment).required()
+        val emoteDescription = option("description", "description", OptionType.STRING, OptionMapping::getAsString)
+
+        override fun invoke(event: SlashCommandInteractionEvent) {
+            val embed = EmbedBuilder().apply {
+                setAuthor(event.interaction.member?.effectiveName)
+                setColor(Color.decode(bot.config.embedColor))
+                setTitle(event[emoteTitle], event[jsonFile].url)
+                setDescription(event[emoteDescription])
+                setFooter("Click the title to download!")
+                setImage(event[image].url)
+            }
+            event.replyEmbeds(embed.build()).setEphemeral(true).queue()
         }
     }
 }
