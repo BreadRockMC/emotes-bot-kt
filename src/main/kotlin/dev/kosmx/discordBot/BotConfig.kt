@@ -14,6 +14,7 @@ data class BotConfig(
     val initActivity: String = "with the old bot",
     val ownerServers: Set<ULong>,
     var mailChannel: ULong,
+    var emoteChannel: ULong,
     var commandStart: String = "?",
     val botAdmins: Set<ULong>,
     val logLink: String = "https://emotes.kosmx.dev/guide/logs",

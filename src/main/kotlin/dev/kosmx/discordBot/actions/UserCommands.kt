@@ -2,10 +2,12 @@ package dev.kosmx.discordBot.actions
 
 import dev.kosmx.discordBot.BotEventHandler
 import dev.kosmx.discordBot.command.SlashCommand
+import dev.kosmx.discordBot.getTextChannelById
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import java.awt.Color
 
 fun initUserCommands(bot: BotEventHandler) {
@@ -44,7 +46,32 @@ fun initUserCommands(bot: BotEventHandler) {
                 setFooter("Click the title to download!")
                 setImage(event[image]?.url)
             }
-            event.replyEmbeds(embed.build()).queue()
+            val message = event.replyEmbeds(embed.build()).setEphemeral(true)
+            message.addActionRow(
+                Button.primary("postemote", "Send to channel"),
+                Button.success("uploademote", "Send to server"),
+                Button.danger("cancelmodal", "Cancel")
+            ).queue()
+        }
+    }
+
+    bot.buttonEvents += ButtonInteractionHandler("postemote") { event ->
+        event.run {
+            val origEmbed = interaction.message.embeds[0]
+            interaction.editComponents().queue()
+            interaction.hook.editOriginal("Sent to channel.").queue()
+            channel.asTextChannel().sendMessageEmbeds(origEmbed).queue()
+        }
+    }
+    bot.buttonEvents += ButtonInteractionHandler("uploademote") { event ->
+        event.run {
+            val origEmbed = interaction.message.embeds[0]
+            interaction.editComponents().queue()
+            //TODO: json validation and upload logic
+
+            interaction.hook.editOriginal("Uploaded.").queue()
+            val target = event.jda.getTextChannelById(bot.config.emoteChannel)
+            target?.sendMessageEmbeds(origEmbed)?.queue()
         }
     }
 }
