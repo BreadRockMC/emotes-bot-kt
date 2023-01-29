@@ -25,7 +25,7 @@ fun initUserCommands(bot: BotEventHandler) {
 
     bot.ownerServerCommands += object : SlashCommand("logs", "How do I send logs?") {
         override fun invoke(event: SlashCommandInteractionEvent) {
-            event.interaction.reply(bot.config.logLink).setEphemeral(true).queue()
+            event.interaction.reply(bot.config.logLink).queue()
         }
     }
 
@@ -44,7 +44,7 @@ fun initUserCommands(bot: BotEventHandler) {
                 setFooter("Click the title to download!")
                 setImage(event[image].url)
             }
-            event.replyEmbeds(embed.build()).setEphemeral(true).queue()
+            event.replyEmbeds(embed.build()).queue()
         }
     }
 }
