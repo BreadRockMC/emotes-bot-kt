@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@Suppress("MemberVisibilityCanBePrivate")
 object BotEventHandler: EventListener {
     val LOGGER: Logger by lazy { LoggerFactory.getLogger(BotEventHandler.javaClass) } // trove4j is configured by JDA
 
