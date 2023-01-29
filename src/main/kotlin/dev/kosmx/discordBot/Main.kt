@@ -2,6 +2,7 @@ package dev.kosmx.discordBot
 
 import dev.kosmx.discordBot.actions.MailBot
 import dev.kosmx.discordBot.actions.initAdminCommands
+import dev.kosmx.discordBot.actions.templateMatcher.PatternMatcher
 import dev.kosmx.discordBot.brigadier.BrigadierConnector
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
@@ -26,6 +27,7 @@ fun main(args: Array<String>) {
 
     initAdminCommands(BotEventHandler)
     BrigadierConnector(BotEventHandler)
+    PatternMatcher(BotEventHandler)
     MailBot(BotEventHandler)
 
     BotEventHandler.start(config)
