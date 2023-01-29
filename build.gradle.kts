@@ -15,6 +15,9 @@ repositories {
     maven("https://libraries.minecraft.net") {
         name = "Mojang"
     }
+    maven("https://maven.kosmx.dev/"){
+        name = "KosmX"
+    }
 }
 
 dependencies {
@@ -23,6 +26,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
 
     implementation("com.mojang:brigadier:${project.property("brigadier_version")}")
+    implementation("dev.kosmx.player-anim:anim-core:${project.property("player_anim")}")
 
     //compileOnly("org.slf4j:slf4j-api:${project.property("slf4j_version")}")
     runtimeOnly("org.slf4j:slf4j-jdk14:${project.property("slf4j_version")}")
