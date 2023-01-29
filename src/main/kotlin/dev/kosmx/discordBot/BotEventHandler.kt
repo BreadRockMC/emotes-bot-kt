@@ -1,5 +1,6 @@
 package dev.kosmx.discordBot
 
+import dev.kosmx.discordBot.actions.IdentifiableList
 import dev.kosmx.discordBot.command.SlashCommand
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -7,7 +8,9 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
@@ -18,6 +21,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@Suppress("MemberVisibilityCanBePrivate")
 object BotEventHandler: EventListener {
     val LOGGER: Logger by lazy { LoggerFactory.getLogger(BotEventHandler.javaClass) } // trove4j is configured by JDA
 
@@ -29,6 +33,10 @@ object BotEventHandler: EventListener {
 
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
+
+    val buttonEvents = IdentifiableList<ButtonInteractionEvent>()
+    val modalEvents = IdentifiableList<ModalInteractionEvent>()
+
 
 
     private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
@@ -86,6 +94,8 @@ object BotEventHandler: EventListener {
                     commandMap[event.name]?.invoke(event)
                         ?: LOGGER.error("executed command was not found: ${event.name}")
                 }
+                is ButtonInteractionEvent -> buttonEvents(event.button.id, event, "button")
+                is ModalInteractionEvent -> modalEvents(event.modalId, event, "modal")
             }
         } catch (e: Throwable) {
             LOGGER.error("Error while handling $event: ${e.message}")

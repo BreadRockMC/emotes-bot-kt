@@ -52,6 +52,7 @@ object Commands {
         )
     }
 
+    @Suppress("SameReturnValue")
     private fun stopCommand(ctx: CommandContext<DiscordCommandSource>, restart: Boolean = false): Int {
         if (ctx.source.user.idLong.toULong() in BotEventHandler.config.botAdmins) {
             ctx.source.event.message.reply("Exiting").queue {
