@@ -74,4 +74,7 @@ fun initUserCommands(bot: BotEventHandler) {
             target?.sendMessageEmbeds(origEmbed)?.queue()
         }
     }
+    bot.buttonEvents += ButtonInteractionHandler("cancelmodal") { event ->
+        event.interaction.editComponents().queue()
+    }
 }
