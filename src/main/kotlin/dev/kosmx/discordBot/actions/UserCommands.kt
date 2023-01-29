@@ -32,7 +32,7 @@ fun initUserCommands(bot: BotEventHandler) {
     bot.ownerServerCommands += object : SlashCommand("postemote", "Send an emote embed to the channel") {
         val emoteTitle = option("title", "title", OptionType.STRING, OptionMapping::getAsString).required()
         val jsonFile = option("jsonfile", "jsonFile", OptionType.ATTACHMENT, OptionMapping::getAsAttachment).required()
-        val image = option("image", "image", OptionType.ATTACHMENT, OptionMapping::getAsAttachment).required()
+        val image = option("image", "image", OptionType.ATTACHMENT, OptionMapping::getAsAttachment)
         val emoteDescription = option("description", "description", OptionType.STRING, OptionMapping::getAsString)
 
         override fun invoke(event: SlashCommandInteractionEvent) {
@@ -42,7 +42,7 @@ fun initUserCommands(bot: BotEventHandler) {
                 setTitle(event[emoteTitle], event[jsonFile].url)
                 setDescription(event[emoteDescription])
                 setFooter("Click the title to download!")
-                setImage(event[image].url)
+                setImage(event[image]?.url)
             }
             event.replyEmbeds(embed.build()).queue()
         }
