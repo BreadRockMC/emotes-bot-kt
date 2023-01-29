@@ -58,6 +58,7 @@ fun initAdminCommands(bot: BotEventHandler) {
         }
     }
 
+    @file:Suppress("DuplicatedCode")
     bot.ownerServerCommands += object : SlashCommand("setMailTo".lowercase(), "Sets the mailbot function endpoint to specified channel") {
         val channel = option("channel", description = "channel", OptionType.CHANNEL, OptionMapping::getAsChannel).required()
 
@@ -66,6 +67,20 @@ fun initAdminCommands(bot: BotEventHandler) {
                 return
             }
             bot.config.mailChannel = event[channel].idLong.toULong()
+            bot.config.save()
+            event.reply("Saved!").queue()
+        }
+    }
+
+    @file:Suppress("DuplicatedCode")
+    bot.ownerServerCommands += object : SlashCommand("setEmoteTo".lowercase(), "Sets emote upload output to the specified channel") {
+        val channel = option("channel", description = "channel", OptionType.CHANNEL, OptionMapping::getAsChannel).required()
+
+        override fun invoke(event: SlashCommandInteractionEvent) {
+            if (event.member?.hasPermission(Permission.ADMINISTRATOR) != true) {
+                return
+            }
+            bot.config.emoteChannel = event[channel].idLong.toULong()
             bot.config.save()
             event.reply("Saved!").queue()
         }
