@@ -1,6 +1,6 @@
 package dev.kosmx.discordBot
 
-import dev.kosmx.discordBot.actions.ButtonInteractionHandler
+import dev.kosmx.discordBot.actions.IdentifiableList
 import dev.kosmx.discordBot.command.SlashCommand
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -33,12 +34,10 @@ object BotEventHandler: EventListener {
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
 
-    val buttonEvents = mutableListOf<ButtonInteractionHandler>()
+    val buttonEvents = IdentifiableList<ButtonInteractionEvent>()
+    val modalEvents = IdentifiableList<ModalInteractionEvent>()
 
 
-    private val buttonInteractionMap: Map<String, (ButtonInteractionEvent) -> Unit> by lazy {
-        buttonEvents.associateBy { it.id }
-    }
 
     private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
         (commands + ownerServerCommands).associate {
@@ -95,10 +94,8 @@ object BotEventHandler: EventListener {
                     commandMap[event.name]?.invoke(event)
                         ?: LOGGER.error("executed command was not found: ${event.name}")
                 }
-                is ButtonInteractionEvent -> {
-                    buttonInteractionMap[event.button.id]?.invoke(event)
-                        ?: LOGGER.error("executed event was not found: ${event.button.id}")
-                }
+                is ButtonInteractionEvent -> buttonEvents(event.button.id, event, "button")
+                is ModalInteractionEvent -> modalEvents(event.modalId, event, "modal")
             }
         } catch (e: Throwable) {
             LOGGER.error("Error while handling $event: ${e.message}")

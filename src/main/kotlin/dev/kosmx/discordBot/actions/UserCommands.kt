@@ -67,7 +67,7 @@ fun initUserCommands(bot: BotEventHandler) {
         }
     }
 
-    bot.buttonEvents += ButtonInteractionHandler("postemote") { event ->
+    bot.buttonEvents += IdentifiableInteractionHandler("postemote") { event ->
         event.run {
             val origEmbed = interaction.message.embeds[0]
             interaction.editComponents().queue()
@@ -75,7 +75,7 @@ fun initUserCommands(bot: BotEventHandler) {
             channel.asTextChannel().sendMessageEmbeds(origEmbed).queue()
         }
     }
-    bot.buttonEvents += ButtonInteractionHandler("uploademote") { event ->
+    bot.buttonEvents += IdentifiableInteractionHandler("uploademote") { event ->
         event.run {
             val origEmbed = interaction.message.embeds[0]
             interaction.editComponents().queue()
@@ -86,7 +86,7 @@ fun initUserCommands(bot: BotEventHandler) {
             target?.sendMessageEmbeds(origEmbed)?.queue()
         }
     }
-    bot.buttonEvents += ButtonInteractionHandler("cancelmodal") { event ->
+    bot.buttonEvents += IdentifiableInteractionHandler("cancelmodal") { event ->
         event.interaction.editComponents().queue()
     }
 }
