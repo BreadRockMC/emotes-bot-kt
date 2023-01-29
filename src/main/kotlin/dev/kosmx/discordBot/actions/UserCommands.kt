@@ -3,12 +3,14 @@ package dev.kosmx.discordBot.actions
 import dev.kosmx.discordBot.BotEventHandler
 import dev.kosmx.discordBot.command.SlashCommand
 import dev.kosmx.discordBot.getTextChannelById
+import dev.kosmx.playerAnim.core.data.gson.AnimationSerializing
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import java.awt.Color
+import java.lang.Exception
 
 fun initUserCommands(bot: BotEventHandler) {
 
@@ -38,6 +40,16 @@ fun initUserCommands(bot: BotEventHandler) {
         val emoteDescription = option("description", "description", OptionType.STRING, OptionMapping::getAsString)
 
         override fun invoke(event: SlashCommandInteractionEvent) {
+            val fileStream = event[jsonFile].proxy.download().get()
+            try {
+                val anim = AnimationSerializing.deserializeAnimation(fileStream)
+                //if deserialization fails, the uploaded JSON is invalid
+                //TODO: get relevant data of emote (e.g.: name) from the JSON file
+            }
+            catch (e: Exception) {
+                event.reply("The JSON you uploaded is invalid!").setEphemeral(true).queue()
+                return
+            }
             val embed = EmbedBuilder().apply {
                 setAuthor(event.interaction.member?.effectiveName)
                 setColor(Color.decode(bot.config.embedColor))
@@ -67,10 +79,10 @@ fun initUserCommands(bot: BotEventHandler) {
         event.run {
             val origEmbed = interaction.message.embeds[0]
             interaction.editComponents().queue()
-            //TODO: json validation and upload logic
-
             interaction.hook.editOriginal("Uploaded.").queue()
             val target = event.jda.getTextChannelById(bot.config.emoteChannel)
+
+            //TODO: upload logic
             target?.sendMessageEmbeds(origEmbed)?.queue()
         }
     }
