@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
 object BotEventHandler: EventListener {
@@ -31,6 +32,8 @@ object BotEventHandler: EventListener {
     val initEvent = mutableListOf<(ReadyEvent) -> Unit>().apply { add(::registerCommands) }
     val guildInitEvent = mutableListOf<(GuildReadyEvent) -> Unit>().apply{ add(::registerOwnerCommands) }
 
+    val maintainEvent = mutableListOf<() -> Unit>()
+
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
 
@@ -38,6 +41,7 @@ object BotEventHandler: EventListener {
     val modalEvents = IdentifiableList<ModalInteractionEvent>()
 
 
+    private val timer = Timer()
 
     private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
         (commands + ownerServerCommands).associate {
@@ -81,6 +85,12 @@ object BotEventHandler: EventListener {
             LOGGER.info("Shutting down")
             client.shutdown()
         })
+
+        timer.schedule(object : TimerTask(){
+            override fun run() {
+                maintainEvent.forEach{ it.invoke() }
+            }
+        }, 1000, 1000)
     }
 
     override fun onEvent(event: GenericEvent) {

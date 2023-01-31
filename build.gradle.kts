@@ -23,6 +23,7 @@ repositories {
 dependencies {
     implementation(group = "net.dv8tion", name = "JDA", version = project.property("jda_version") as String)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
 
     implementation("com.mojang:brigadier:${project.property("brigadier_version")}")

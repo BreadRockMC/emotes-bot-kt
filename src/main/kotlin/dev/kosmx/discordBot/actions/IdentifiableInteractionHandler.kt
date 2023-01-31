@@ -19,7 +19,7 @@ class IdentifiableList<T : Event>(private val list: MutableList<IdentifiableInte
     operator fun invoke(id: String?, event: T, type: String) {
         if (map == null) map = list.associateBy { it.id }
 
-        map!![id]?.invoke(event)
+        map!![id?.split(":")?.get(0)]?.invoke(event)
             ?: BotEventHandler.LOGGER.error("executed $type event was not found: $id")
     }
 
