@@ -78,7 +78,7 @@ object BotEventHandler: EventListener {
         this.config = config
         val client: JDA = JDABuilder.createDefault(config.token).apply {
             // configure here
-            setActivity(Activity.playing("kotlin"))
+            setActivity(Activity.playing("emotes.kosmx.dev | following instructions"))
             disableIntents(GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MESSAGE_TYPING)
             enableIntents(GatewayIntent.DIRECT_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
             addEventListeners(this@BotEventHandler)
