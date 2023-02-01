@@ -31,9 +31,9 @@ typealias AttachmentConfig = Pair<String, InputStream>
 
 object PatternMatcher {
     @OptIn(ExperimentalSerializationApi::class)
-    val patterns: MutableList<Pattern> = File("patterns.json").inputStream().use { input ->
+    val patterns: MutableList<Pattern> = File("patterns.json").takeIf { it.isFile }?.inputStream()?.use { input ->
         Json.decodeFromStream(input)
-    }
+    } ?: mutableListOf()
 
     val attachmentMap = mutableMapOf<String, Pair<Instant, AttachmentConfig>>()
 
