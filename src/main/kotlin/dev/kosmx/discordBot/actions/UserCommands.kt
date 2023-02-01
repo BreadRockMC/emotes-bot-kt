@@ -2,30 +2,16 @@ package dev.kosmx.discordBot.actions
 
 import dev.kosmx.discordBot.BotEventHandler
 import dev.kosmx.discordBot.command.SlashCommand
+import dev.kosmx.discordBot.command.SlashOptionType
 import dev.kosmx.discordBot.getTextChannelById
 import dev.kosmx.playerAnim.core.data.gson.AnimationSerializing
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import org.jsoup.Jsoup
 import java.awt.Color
 
 fun initUserCommands(bot: BotEventHandler) {
-
-    bot.ownerServerCommands += object : SlashCommand("test", "testing testing 123") {
-        val message = option("message", "message", OptionType.STRING, OptionMapping::getAsString).required()
-
-        override fun invoke(event: SlashCommandInteractionEvent) {
-            val embed = EmbedBuilder().apply {
-                setAuthor(event.interaction.member?.effectiveName)
-                setColor(Color.getColor(bot.config.embedColor))
-                setDescription(event[message])
-            }
-            event.interaction.replyEmbeds(embed.build()).queue()
-        }
-    }
 
     bot.ownerServerCommands += object : SlashCommand("logs", "How do I send logs?") {
         override fun invoke(event: SlashCommandInteractionEvent) {
@@ -33,11 +19,12 @@ fun initUserCommands(bot: BotEventHandler) {
         }
     }
 
+
     bot.ownerServerCommands += object : SlashCommand("postemote", "Send an emote embed to the channel") {
-        val emoteTitle = option("title", "title", OptionType.STRING, OptionMapping::getAsString).required()
-        val jsonFile = option("jsonfile", "jsonFile", OptionType.ATTACHMENT, OptionMapping::getAsAttachment).required()
-        val image = option("image", "image", OptionType.ATTACHMENT, OptionMapping::getAsAttachment)
-        val emoteDescription = option("description", "description", OptionType.STRING, OptionMapping::getAsString)
+        val emoteTitle = option("title", "title", SlashOptionType.STRING).required()
+        val jsonFile = option("jsonfile", "jsonFile", SlashOptionType.ATTACHMENT).required()
+        val image = option("image", "image", SlashOptionType.ATTACHMENT)
+        val emoteDescription = option("description", "description", SlashOptionType.STRING)
 
         override fun invoke(event: SlashCommandInteractionEvent) {
             val fileStream = event[jsonFile].proxy.download().get()
@@ -68,7 +55,7 @@ fun initUserCommands(bot: BotEventHandler) {
     }
 
     bot.ownerServerCommands += object : SlashCommand("postEmoteUrl".lowercase(), "Send an emote embed to the channel, using emotes.kosmx.dev url") {
-        val url = option("url", "url", OptionType.STRING, OptionMapping::getAsString).required()
+        val url = option("url", "url", SlashOptionType.STRING).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
             val pattern = Regex("^(http(s)?://)?emotes.kosmx.dev/e(motes)?/(\\d+)(/)?\$")

@@ -2,22 +2,21 @@ package dev.kosmx.discordBot.actions
 
 import dev.kosmx.discordBot.BotEventHandler
 import dev.kosmx.discordBot.command.SlashCommand
+import dev.kosmx.discordBot.command.SlashOptionType
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 
 fun initAdminCommands(bot: BotEventHandler) {
 
     bot.ownerServerCommands += object : SlashCommand("msg", "message user or channel") {
-        val message = option("message", "message", OptionType.STRING, OptionMapping::getAsString).required()
-        val user = option("user", "user to send message", OptionType.USER, OptionMapping::getAsUser)
-        val channel = option("channel", "channel to send message", OptionType.CHANNEL, OptionMapping::getAsChannel)
+        val message = option("message", "message", SlashOptionType.STRING).required()
+        val user = option("user", "user to send message", SlashOptionType.USER)
+        val channel = option("channel", "channel to send message", SlashOptionType.CHANNEL)
         val attachment =
-            option("attachment", "optional attachment to send", OptionType.ATTACHMENT, OptionMapping::getAsAttachment)
+            option("attachment", "optional attachment to send", SlashOptionType.ATTACHMENT)
 
         override fun invoke(event: SlashCommandInteractionEvent) {
             if (event.member?.hasPermission(Permission.MODERATE_MEMBERS) != true) {
@@ -60,7 +59,7 @@ fun initAdminCommands(bot: BotEventHandler) {
 
     @file:Suppress("DuplicatedCode")
     bot.ownerServerCommands += object : SlashCommand("setMailTo".lowercase(), "Sets the mailbot function endpoint to specified channel") {
-        val channel = option("channel", description = "channel", OptionType.CHANNEL, OptionMapping::getAsChannel).required()
+        val channel = option("channel", description = "channel", SlashOptionType.CHANNEL).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
             if (event.member?.hasPermission(Permission.ADMINISTRATOR) != true) {
@@ -74,7 +73,7 @@ fun initAdminCommands(bot: BotEventHandler) {
 
     @file:Suppress("DuplicatedCode")
     bot.ownerServerCommands += object : SlashCommand("setEmoteTo".lowercase(), "Sets emote upload output to the specified channel") {
-        val channel = option("channel", description = "channel", OptionType.CHANNEL, OptionMapping::getAsChannel).required()
+        val channel = option("channel", description = "channel", SlashOptionType.CHANNEL).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
             if (event.member?.hasPermission(Permission.ADMINISTRATOR) != true) {
@@ -87,7 +86,7 @@ fun initAdminCommands(bot: BotEventHandler) {
     }
 
     bot.ownerServerCommands += object : SlashCommand("setCommandSequence".lowercase(), "Sets the command char") {
-        val sequence = option("sequence", description = "start sequence, normally special chars", OptionType.STRING, OptionMapping::getAsString).required()
+        val sequence = option("sequence", description = "start sequence, normally special chars", SlashOptionType.STRING).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
             if (event.member?.hasPermission(Permission.ADMINISTRATOR) != true) {

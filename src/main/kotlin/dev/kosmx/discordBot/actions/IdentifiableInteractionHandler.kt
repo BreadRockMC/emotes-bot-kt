@@ -9,14 +9,14 @@ open class IdentifiableInteractionHandler<T: Event>(val id: String, val function
     }
 }
 
-class IdentifiableList<T : Event>(private val list: MutableList<IdentifiableInteractionHandler<T>> = mutableListOf()): List<IdentifiableInteractionHandler<T>> by list {
-    private var map: Map<String, IdentifiableInteractionHandler<T>>? = null
-    operator fun plusAssign(t: IdentifiableInteractionHandler<T>) {
+class IdentifiableList<T : IdentifiableInteractionHandler<E>, E: Event>(private val list: MutableList<T> = mutableListOf()): List<T> by list {
+    private var map: Map<String, T>? = null
+    operator fun plusAssign(t: T) {
         map = null
         list += t
     }
 
-    operator fun invoke(id: String?, event: T, type: String) {
+    operator fun invoke(id: String?, event: E, type: String) {
         if (map == null) map = list.associateBy { it.id }
 
         map!![id?.split(":")?.get(0)]?.invoke(event)

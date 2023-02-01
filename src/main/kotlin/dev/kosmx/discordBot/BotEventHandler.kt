@@ -1,7 +1,9 @@
 package dev.kosmx.discordBot
 
+import dev.kosmx.discordBot.actions.IdentifiableInteractionHandler
 import dev.kosmx.discordBot.actions.IdentifiableList
 import dev.kosmx.discordBot.command.SlashCommand
+import dev.kosmx.discordBot.command.SlashOptionType
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.Permission
@@ -16,8 +18,6 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
@@ -39,25 +39,21 @@ object BotEventHandler: EventListener {
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
 
-    val buttonEvents = IdentifiableList<ButtonInteractionEvent>()
-    val modalEvents = IdentifiableList<ModalInteractionEvent>()
+    val buttonEvents = IdentifiableList<IdentifiableInteractionHandler<ButtonInteractionEvent>, ButtonInteractionEvent>()
+    val modalEvents = IdentifiableList<IdentifiableInteractionHandler<ModalInteractionEvent>, ModalInteractionEvent>()
 
 
     private val timer = Timer()
 
-    private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
-        (commands + ownerServerCommands).associate {
-            it.name to { event: SlashCommandInteractionEvent ->
-                it.run { invoke(event) }
-            }
-        }
+    private val commandMap: Map<String, SlashCommand> by lazy {
+        (commands + ownerServerCommands).associateBy { it.name }
     }
 
     init {
         ownerServerCommands += object : SlashCommand("stop", "Stops the bot (owner only)", configure = {
             defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
         }) {
-            val forRestart = option("restart", "Stop for restart is true", OptionType.BOOLEAN, OptionMapping::getAsBoolean).default(false)
+            val forRestart = option("restart", "Stop for restart is true", SlashOptionType.BOOLEAN).default(false)
 
             override fun invoke(event: SlashCommandInteractionEvent) {
                 event.reply("stopping").setEphemeral(true).queue {
