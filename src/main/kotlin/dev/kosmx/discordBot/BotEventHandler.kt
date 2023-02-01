@@ -16,6 +16,8 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
+import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
@@ -52,11 +54,15 @@ object BotEventHandler: EventListener {
     }
 
     init {
-        ownerServerCommands += SlashCommand("stop", "Stops the bot (owner only)", configure = {
+        ownerServerCommands += object : SlashCommand("stop", "Stops the bot (owner only)", configure = {
             defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
         }) {
-            it.reply("stopping").setEphemeral(true).queue {
-                Runtime.getRuntime().exit(0)
+            val forRestart = option("restart", "Stop for restart is true", OptionType.BOOLEAN, OptionMapping::getAsBoolean).default(false)
+
+            override fun invoke(event: SlashCommandInteractionEvent) {
+                event.reply("stopping").setEphemeral(true).queue {
+                    Runtime.getRuntime().exit(if (event[forRestart]) 0 else 4)
+                }
             }
         }
 

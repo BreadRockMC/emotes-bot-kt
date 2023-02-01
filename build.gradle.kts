@@ -28,6 +28,7 @@ dependencies {
 
     implementation("com.mojang:brigadier:${project.property("brigadier_version")}")
     implementation("dev.kosmx.player-anim:anim-core:${project.property("player_anim")}")
+    implementation("org.jsoup:jsoup:${project.property("jsoup_version")}")
 
     //compileOnly("org.slf4j:slf4j-api:${project.property("slf4j_version")}")
     runtimeOnly("org.slf4j:slf4j-jdk14:${project.property("slf4j_version")}")

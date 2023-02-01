@@ -20,7 +20,7 @@ object Commands {
             .then(argument<DiscordCommandSource?, String?>("function", word())
                 .executes { ctx ->
                     when(StringArgumentType.getString(ctx, "function").lowercase()) {
-                        "postemote" -> "This function is not yet implemented, ask <@303577390616150018>" // bad idea
+                        "postemote" -> "Please use /postemote slash command\nIt will send a preview before sending the embed to the server" // bad idea
                         else -> "Unknown function :C"
                     }.let {
                         ctx.source.event.message.reply(it).queue()
@@ -56,7 +56,7 @@ object Commands {
     private fun stopCommand(ctx: CommandContext<DiscordCommandSource>, restart: Boolean = false): Int {
         if (ctx.source.user.idLong.toULong() in BotEventHandler.config.botAdmins) {
             ctx.source.event.message.reply("Exiting").queue {
-                exitProcess(if (restart) 42 else 0)
+                exitProcess(if (restart) 0 else 4)
             }
         } else {
             ctx.source.event.message.reply("You don't have permission to use this command").queue()
