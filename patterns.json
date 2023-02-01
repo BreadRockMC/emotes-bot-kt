@@ -1,0 +1,8 @@
+[
+  {
+    "pattern": "^(?i)Hello There(!)?(?-i)$",
+    "response": "General Kenobi",
+    "base64Embed": null,
+    "embedName": null
+  }
+]

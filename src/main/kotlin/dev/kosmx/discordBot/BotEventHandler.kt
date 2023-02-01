@@ -16,10 +16,13 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
+import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
 object BotEventHandler: EventListener {
@@ -31,6 +34,8 @@ object BotEventHandler: EventListener {
     val initEvent = mutableListOf<(ReadyEvent) -> Unit>().apply { add(::registerCommands) }
     val guildInitEvent = mutableListOf<(GuildReadyEvent) -> Unit>().apply{ add(::registerOwnerCommands) }
 
+    val maintainEvent = mutableListOf<() -> Unit>()
+
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
 
@@ -38,6 +43,7 @@ object BotEventHandler: EventListener {
     val modalEvents = IdentifiableList<ModalInteractionEvent>()
 
 
+    private val timer = Timer()
 
     private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
         (commands + ownerServerCommands).associate {
@@ -48,11 +54,15 @@ object BotEventHandler: EventListener {
     }
 
     init {
-        ownerServerCommands += SlashCommand("stop", "Stops the bot (owner only)", configure = {
+        ownerServerCommands += object : SlashCommand("stop", "Stops the bot (owner only)", configure = {
             defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
         }) {
-            it.reply("stopping").setEphemeral(true).queue {
-                Runtime.getRuntime().exit(0)
+            val forRestart = option("restart", "Stop for restart is true", OptionType.BOOLEAN, OptionMapping::getAsBoolean).default(false)
+
+            override fun invoke(event: SlashCommandInteractionEvent) {
+                event.reply("stopping").setEphemeral(true).queue {
+                    Runtime.getRuntime().exit(if (event[forRestart]) 0 else 4)
+                }
             }
         }
 
@@ -81,6 +91,12 @@ object BotEventHandler: EventListener {
             LOGGER.info("Shutting down")
             client.shutdown()
         })
+
+        timer.schedule(object : TimerTask(){
+            override fun run() {
+                maintainEvent.forEach{ it.invoke() }
+            }
+        }, 1000, 1000)
     }
 
     override fun onEvent(event: GenericEvent) {

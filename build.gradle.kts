@@ -23,10 +23,12 @@ repositories {
 dependencies {
     implementation(group = "net.dv8tion", name = "JDA", version = project.property("jda_version") as String)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
 
     implementation("com.mojang:brigadier:${project.property("brigadier_version")}")
     implementation("dev.kosmx.player-anim:anim-core:${project.property("player_anim")}")
+    implementation("org.jsoup:jsoup:${project.property("jsoup_version")}")
 
     //compileOnly("org.slf4j:slf4j-api:${project.property("slf4j_version")}")
     runtimeOnly("org.slf4j:slf4j-jdk14:${project.property("slf4j_version")}")

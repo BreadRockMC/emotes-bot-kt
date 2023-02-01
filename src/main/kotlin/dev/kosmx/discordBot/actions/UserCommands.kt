@@ -9,8 +9,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import org.jsoup.Jsoup
 import java.awt.Color
-import java.lang.Exception
 
 fun initUserCommands(bot: BotEventHandler) {
 
@@ -64,6 +64,59 @@ fun initUserCommands(bot: BotEventHandler) {
                 Button.success("uploademote", "Send to server"),
                 Button.danger("cancelmodal", "Cancel")
             ).queue()
+        }
+    }
+
+    bot.ownerServerCommands += object : SlashCommand("postEmoteUrl".lowercase(), "Send an emote embed to the channel, using emotes.kosmx.dev url") {
+        val url = option("url", "url", OptionType.STRING, OptionMapping::getAsString).required()
+
+        override fun invoke(event: SlashCommandInteractionEvent) {
+            val pattern = Regex("^(http(s)?://)?emotes.kosmx.dev/e(motes)?/(\\d+)(/)?\$")
+            val emoteId: Int? = pattern.find(event[url])?.groupValues?.get(4)?.toInt()
+            if (emoteId != null) {
+                val response =
+                    Jsoup.connect("https://emotes.kosmx.dev/e/$emoteId").userAgent("emotes-bot.kt").execute()
+
+                val doc = response.takeIf { it.statusCode() == 200 }?.parse()
+                    ?: kotlin.run { event.reply("can't access emote").setEphemeral(true).queue(); return@invoke }
+
+                val meta = doc.getElementsByTag("meta")
+                val properties = meta.fold(object {
+                    var author: String? = null
+                    var name: String? = null
+                    var description: String? = null
+                    var iconUrl: String? = null
+                }) { acc, element ->
+                    when(element.attr("property")) {
+                        "og:image" -> acc.iconUrl = element.attr("abs:content")
+                        "og:description" -> acc.description = element.attr("content")
+                        "og:title" -> acc.name = element.attr("content")
+                    }
+                    if (element.attr("name") == "author") acc.author = element.attr("content")
+                    return@fold acc
+                }
+
+                if (properties.name != null && properties.author != null && properties.description != null) {
+                    val emoteUrl = "https://emotes.kosmx.dev/e/${emoteId}/bin"
+
+                    val embed = EmbedBuilder().apply {
+                        setAuthor(event.interaction.member?.effectiveName)
+                        setColor(Color.decode(bot.config.embedColor))
+                        setTitle(properties.name, emoteUrl)
+                        setDescription(properties.description)
+                        setFooter("Click the title to download!")
+                        setImage(properties.iconUrl)
+                    }
+                    val message = event.replyEmbeds(embed.build()).setEphemeral(true)
+                    message.addActionRow(
+                        Button.primary("postemote", "Send to channel"),
+                        Button.success("uploademote", "Send to server"),
+                        Button.danger("cancelmodal", "Cancel")
+                    ).queue()
+                } else {
+                    event.reply("something went wrong").setEphemeral(true).queue()
+                }
+            }
         }
     }
 
