@@ -25,6 +25,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
+    //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     implementation("com.mojang:brigadier:${project.property("brigadier_version")}")
     implementation("dev.kosmx.player-anim:anim-core:${project.property("player_anim")}")

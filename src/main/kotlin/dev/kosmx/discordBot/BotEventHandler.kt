@@ -1,7 +1,10 @@
 package dev.kosmx.discordBot
 
+import dev.kosmx.discordBot.actions.IdentifiableInteractionHandler
 import dev.kosmx.discordBot.actions.IdentifiableList
+import dev.kosmx.discordBot.actions.invoke
 import dev.kosmx.discordBot.command.SlashCommand
+import dev.kosmx.discordBot.command.SlashOptionType
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.Permission
@@ -9,6 +12,7 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -16,8 +20,6 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.slf4j.Logger
@@ -39,25 +41,21 @@ object BotEventHandler: EventListener {
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
 
-    val buttonEvents = IdentifiableList<ButtonInteractionEvent>()
-    val modalEvents = IdentifiableList<ModalInteractionEvent>()
+    val buttonEvents = IdentifiableList<IdentifiableInteractionHandler<ButtonInteractionEvent>>()
+    val modalEvents = IdentifiableList<IdentifiableInteractionHandler<ModalInteractionEvent>>()
 
 
     private val timer = Timer()
 
-    private val commandMap: Map<String, (SlashCommandInteractionEvent) -> Unit> by lazy {
-        (commands + ownerServerCommands).associate {
-            it.name to { event: SlashCommandInteractionEvent ->
-                it.run { invoke(event) }
-            }
-        }
+    private val commandMap: Map<String, SlashCommand> by lazy {
+        (commands + ownerServerCommands).associateBy { it.name }
     }
 
     init {
         ownerServerCommands += object : SlashCommand("stop", "Stops the bot (owner only)", configure = {
             defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
         }) {
-            val forRestart = option("restart", "Stop for restart is true", OptionType.BOOLEAN, OptionMapping::getAsBoolean).default(false)
+            val forRestart = option("restart", "Stop for restart is true", SlashOptionType.BOOLEAN).default(false)
 
             override fun invoke(event: SlashCommandInteractionEvent) {
                 event.reply("stopping").setEphemeral(true).queue {
@@ -107,11 +105,12 @@ object BotEventHandler: EventListener {
                 is ReadyEvent -> initEvent.forEach { subscriber -> subscriber(event) }
                 is GuildReadyEvent -> guildInitEvent.forEach { subscriber -> subscriber(event) }
                 is SlashCommandInteractionEvent -> {
-                    commandMap[event.name]?.invoke(event)
+                    commandMap[event.name]?.bindAndInvoke(event)
                         ?: LOGGER.error("executed command was not found: ${event.name}")
                 }
                 is ButtonInteractionEvent -> buttonEvents(event.button.id, event, "button")
                 is ModalInteractionEvent -> modalEvents(event.modalId, event, "modal")
+                is CommandAutoCompleteInteractionEvent -> commandMap[event.name]?.autoCompleteAction(event) ?: run { event.replyChoiceStrings("error") }
             }
         } catch (e: Throwable) {
             LOGGER.error("Error while handling $event: ${e.message}")

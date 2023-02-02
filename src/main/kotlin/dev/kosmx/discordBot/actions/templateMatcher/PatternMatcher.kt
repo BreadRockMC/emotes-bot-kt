@@ -4,6 +4,8 @@ import dev.kosmx.discordBot.BotEventHandler
 import dev.kosmx.discordBot.EventResult
 import dev.kosmx.discordBot.actions.IdentifiableInteractionHandler
 import dev.kosmx.discordBot.command.SlashCommand
+import dev.kosmx.discordBot.command.SlashOptionType
+import dev.kosmx.discordBot.maintainEvent
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -13,8 +15,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.OptionMapping
-import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 import net.dv8tion.jda.api.interactions.modals.Modal
@@ -25,7 +25,6 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.util.*
-import kotlin.time.Duration.Companion.minutes
 
 typealias AttachmentConfig = Pair<String, InputStream>
 
@@ -62,21 +61,17 @@ object PatternMatcher {
 
         bot.ownerServerCommands += object :
             SlashCommand("addAutoReply".lowercase(), "Set a regex and add the replied message to auto-reply database") {
-            val pattern = option("pattern", "regex pattern", OptionType.STRING, OptionMapping::getAsString)
-            val msg = option(
-                "reply",
-                "reply, you'll be able to edit it in a modal",
-                OptionType.STRING,
-                OptionMapping::getAsString
-            )
-            val attachment =
-                option("attachment", "optional attachment file", OptionType.ATTACHMENT, OptionMapping::getAsAttachment)
+            val pattern = option("pattern", "regex pattern", SlashOptionType.STRING)
+            val msg = option("reply", "reply, you'll be able to edit it in a modal", SlashOptionType.STRING)
+            val attachment = option("attachment", "optional attachment file", SlashOptionType.ATTACHMENT)
 
             override fun invoke(event: SlashCommandInteractionEvent) {
-                event[attachment]?.let { attachmentMap[event.id] = Clock.System.now() to ( it.fileName to it.proxy.download().get()) }
+                event[attachment]?.let {
+                    attachmentMap[event.id] = Clock.System.now() to (it.fileName to it.proxy.download().get())
+                }
                 Modal.create("autoreply:${event.id}", "Auto reply").apply {
                     addActionRow(TextInput.create("msg", "Reply message", TextInputStyle.PARAGRAPH).also {
-                        it.placeholder = event[msg]
+                        it.value = event[msg]
                         //it.setRequiredRange()
                     }.build())
                     addActionRow(
@@ -98,17 +93,7 @@ object PatternMatcher {
             event.reply("Success!").setEphemeral(true).queue()
         }
 
-        bot.maintainEvent += object : () -> Unit {
-            var lastMaintained = Clock.System.now()
-
-            override fun invoke() {
-                if (lastMaintained + 5.minutes < Clock.System.now()) {
-                    val now = Clock.System.now()
-                    lastMaintained = now
-                    attachmentMap.entries.removeIf { (_, pair) -> pair.first + 15.minutes > now }
-                }
-            }
-        }
+        bot.maintainEvent += attachmentMap.maintainEvent()
     }
 }
 
