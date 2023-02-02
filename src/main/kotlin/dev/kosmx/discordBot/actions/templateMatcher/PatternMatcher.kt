@@ -42,8 +42,12 @@ object PatternMatcher {
     operator fun invoke(bot: BotEventHandler) {
         bot.messageReceivedEvent[60] = event@{ event ->
             if (event.author.id == event.jda.selfUser.id) return@event EventResult.PASS
+
+            val contents = FileDownloader.getContent(event)
             for (pattern in patterns) {
-                if (pattern.regex.containsMatchIn(event.message.contentRaw)) {
+                if (!pattern.onlyOnFile && pattern.regex.containsMatchIn(event.message.contentRaw) ||
+                    contents.find { pattern.regex.containsMatchIn(it) } != null
+                ) {
                     event.message.reply(pattern.message).queue()
                     return@event EventResult.CONSUME
                 }
@@ -98,7 +102,7 @@ object PatternMatcher {
 }
 
 @Serializable
-class Pattern(private val pattern: String, private val response: String, private val base64Embed: String?, private val embedName: String?) {
+class Pattern(private val pattern: String, private val response: String, private val base64Embed: String?, private val embedName: String?, val onlyOnFile: Boolean = true) {
     @Transient
     val regex: Regex = Regex(pattern)
 
