@@ -1,6 +1,8 @@
 package dev.kosmx.discordBot.command
 
+import dev.kosmx.discordBot.BotEventHandler
 import dev.kosmx.discordBot.actions.IdentifiableList
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.DiscordLocale
 import net.dv8tion.jda.api.interactions.commands.Command
@@ -23,14 +25,18 @@ class CommandGroup(name: String, description: String, configure: SlashCommandDat
             })
         }
 
-    private val commands = IdentifiableList<SlashCommand, SlashCommandInteractionEvent>()
+    private val commands = IdentifiableList<SlashCommand>()
 
     operator fun plusAssign(command: SlashCommand) {
         commands += command
     }
 
     override fun invoke(event: SlashCommandInteractionEvent) {
-        commands(event.subcommandName, event, "command")
+        commands[event.subcommandName]?.bindAndInvoke(event) ?: BotEventHandler.LOGGER.error("executed command event was not found: ${event.fullCommandName}")
+    }
+
+    override fun autoCompleteAction(event: CommandAutoCompleteInteractionEvent) {
+        commands[event.subcommandName!!]?.autoCompleteAction(event) ?: run { event.replyChoiceStrings("error").queue() }
     }
 
     class SubcommandDataWrapper(private val sub: SubcommandData, private val group: SlashCommandData) : SlashCommandData {

@@ -1,6 +1,7 @@
 package dev.kosmx.discordBot
 
 import dev.kosmx.discordBot.actions.MailBot
+import dev.kosmx.discordBot.actions.Tags
 import dev.kosmx.discordBot.actions.initAdminCommands
 import dev.kosmx.discordBot.actions.initUserCommands
 import dev.kosmx.discordBot.actions.templateMatcher.PatternMatcher
@@ -31,6 +32,7 @@ fun main(args: Array<String>) {
     BrigadierConnector(BotEventHandler)
     PatternMatcher(BotEventHandler)
     MailBot(BotEventHandler)
+    Tags(BotEventHandler)
 
     BotEventHandler.start(config)
 

@@ -2,6 +2,7 @@ package dev.kosmx.discordBot
 
 import dev.kosmx.discordBot.actions.IdentifiableInteractionHandler
 import dev.kosmx.discordBot.actions.IdentifiableList
+import dev.kosmx.discordBot.actions.invoke
 import dev.kosmx.discordBot.command.SlashCommand
 import dev.kosmx.discordBot.command.SlashOptionType
 import net.dv8tion.jda.api.JDA
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -39,8 +41,8 @@ object BotEventHandler: EventListener {
     val commands = mutableListOf<SlashCommand>()
     val ownerServerCommands = mutableListOf<SlashCommand>()
 
-    val buttonEvents = IdentifiableList<IdentifiableInteractionHandler<ButtonInteractionEvent>, ButtonInteractionEvent>()
-    val modalEvents = IdentifiableList<IdentifiableInteractionHandler<ModalInteractionEvent>, ModalInteractionEvent>()
+    val buttonEvents = IdentifiableList<IdentifiableInteractionHandler<ButtonInteractionEvent>>()
+    val modalEvents = IdentifiableList<IdentifiableInteractionHandler<ModalInteractionEvent>>()
 
 
     private val timer = Timer()
@@ -103,11 +105,12 @@ object BotEventHandler: EventListener {
                 is ReadyEvent -> initEvent.forEach { subscriber -> subscriber(event) }
                 is GuildReadyEvent -> guildInitEvent.forEach { subscriber -> subscriber(event) }
                 is SlashCommandInteractionEvent -> {
-                    commandMap[event.name]?.invoke(event)
+                    commandMap[event.name]?.bindAndInvoke(event)
                         ?: LOGGER.error("executed command was not found: ${event.name}")
                 }
                 is ButtonInteractionEvent -> buttonEvents(event.button.id, event, "button")
                 is ModalInteractionEvent -> modalEvents(event.modalId, event, "modal")
+                is CommandAutoCompleteInteractionEvent -> commandMap[event.name]?.autoCompleteAction(event) ?: run { event.replyChoiceStrings("error") }
             }
         } catch (e: Throwable) {
             LOGGER.error("Error while handling $event: ${e.message}")

@@ -20,7 +20,10 @@ interface SlashOptionType<T> {
 
     companion object {
 
-        val STRING = StringOptionType()
+        val STRING = object : SlashOptionType<String> {
+            override val type: OptionType = OptionType.STRING
+            override val optionMapping = OptionMapping::getAsString
+        }
 
         val INTEGER = object : SlashOptionType<Int> {
             override val type = OptionType.INTEGER
@@ -64,10 +67,3 @@ interface SlashOptionType<T> {
         }
     }
 }
-
-open class StringOptionType: SlashOptionType<String> {
-
-    override val type: OptionType = OptionType.STRING
-    override val optionMapping = OptionMapping::getAsString
-}
-
