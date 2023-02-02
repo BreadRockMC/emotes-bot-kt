@@ -14,7 +14,9 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 import net.dv8tion.jda.api.interactions.modals.Modal
@@ -55,7 +57,9 @@ object PatternMatcher {
             EventResult.PASS
         }
 
-        bot.ownerServerCommands += SlashCommand("reloadAutoReply".lowercase(), "Reloads the auto reply config") {
+        bot.ownerServerCommands += SlashCommand("reloadAutoReply".lowercase(), "Reloads the auto reply config", {
+            defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
+        }) {
             patterns.clear()
             patterns.addAll(File("patterns.json").inputStream().use { input ->
                 Json.decodeFromStream(input)
@@ -64,16 +68,19 @@ object PatternMatcher {
         }
 
         bot.ownerServerCommands += object :
-            SlashCommand("addAutoReply".lowercase(), "Set a regex and add the replied message to auto-reply database") {
+            SlashCommand("addAutoReply".lowercase(), "Set a regex and add the replied message to auto-reply database", configure = {
+                defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
+            }) {
             val pattern = option("pattern", "regex pattern", SlashOptionType.STRING)
             val msg = option("reply", "reply, you'll be able to edit it in a modal", SlashOptionType.STRING)
             val attachment = option("attachment", "optional attachment file", SlashOptionType.ATTACHMENT)
+            val onlyOnFile by option("onFile".lowercase(), "Only match log files, default=TRUE", SlashOptionType.BOOLEAN).default(true)
 
             override fun invoke(event: SlashCommandInteractionEvent) {
                 event[attachment]?.let {
                     attachmentMap[event.id] = Clock.System.now() to (it.fileName to it.proxy.download().get())
                 }
-                Modal.create("autoreply:${event.id}", "Auto reply").apply {
+                Modal.create("autoreply:${event.id}:$onlyOnFile", "Auto reply").apply {
                     addActionRow(TextInput.create("msg", "Reply message", TextInputStyle.PARAGRAPH).also {
                         it.value = event[msg]
                         //it.setRequiredRange()
@@ -89,10 +96,11 @@ object PatternMatcher {
 
         bot.modalEvents += IdentifiableInteractionHandler("autoreply") { event ->
             val id = event.modalId.split(":")[1]
+            val onlyOnFile = event.modalId.split(":")[2].toBoolean()
             val attachment = attachmentMap[id]?.second
             val regex = event.getValue("regex")!!.asString
             val msg = event.getValue("msg")!!.asString
-            patterns += Pattern(regex, msg, attachment?.second?.let { Base64.getEncoder().encodeToString(it.readAllBytes()) }, attachment?.first)
+            patterns += Pattern(regex, msg, attachment?.second?.let { Base64.getEncoder().encodeToString(it.readAllBytes()) }, attachment?.first, onlyOnFile)
             File("patterns.json").outputStream().use { json.encodeToStream(patterns, it) }
             event.reply("Success!").setEphemeral(true).queue()
         }
@@ -104,7 +112,7 @@ object PatternMatcher {
 @Serializable
 class Pattern(private val pattern: String, private val response: String, private val base64Embed: String?, private val embedName: String?, val onlyOnFile: Boolean = true) {
     @Transient
-    val regex: Regex = Regex(pattern)
+    val regex: Regex = Regex(pattern, option = RegexOption.MULTILINE)
 
     private val embed: InputStream? by lazy {
         base64Embed?.let {

@@ -4,8 +4,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.jsoup.Jsoup
 
 object FileDownloader {
-    private val mclogsPattern = Regex("https://mclo\\.gs/(?<match>[^/\\\\{}\\[\\]]+)\$") // with group
-    private val pastebinPattern = Regex("https://pastebin\\.com/(raw/)?(?<match>[^/\\\\{}\\[\\]]+)\$") // with group 2
+    private val mclogsPattern = Regex("https://mclo\\.gs/(?<match>[^/\\\\{}\\[\\]\\n]+)\$", RegexOption.MULTILINE) // with group
+    private val pastebinPattern = Regex("https://pastebin\\.com/(raw/)?(?<match>[^/\\\\{}\\[\\]\\n]+)\$", RegexOption.MULTILINE) // with group 2
 
     /**
      * Attempt to parse message for log attachments and mclo.gs, pastebin links
@@ -18,14 +18,16 @@ object FileDownloader {
         }.map {
             String(it.proxy.download().get().readAllBytes(), Charsets.UTF_8)
         }.filter { it.isNotBlank() }
-        return attachedLogs + lookForMCLogs(event.message.contentRaw) + lookForPastebin(event.message.contentRaw)
+        return (attachedLogs + lookForMCLogs(event.message.contentRaw) + lookForPastebin(event.message.contentRaw)).map {
+            it.replace("\r\n", "\n") // windows...
+        }
     }
 
     private fun lookForPastebin(msg: String): List<String> =
         pastebinPattern.findAll(msg).mapNotNull { matchResult ->
             matchResult.groups["match"]?.value
         }.mapNotNull {id ->
-            val result = Jsoup.connect("https://pastebin.com/raw/$id").userAgent("kosmx.dev, emotes-bot").execute()
+            val result = Jsoup.connect("https://pastebin.com/raw/$id").userAgent("kosmx.dev, emotes-bot").ignoreHttpErrors(true).execute()
             return@mapNotNull if (result.statusCode() == 200) {
                 result.body() // hope I won't get flagged
             } else {
@@ -37,7 +39,7 @@ object FileDownloader {
         mclogsPattern.findAll(msg).mapNotNull { matchResult ->
             matchResult.groups["match"]?.value
         }.mapNotNull { id ->
-            val result = Jsoup.connect("https://api.mclo.gs/1/raw/$id").userAgent("kosmx.dev, emotes-bot").execute()
+            val result = Jsoup.connect("https://api.mclo.gs/1/raw/$id").userAgent("kosmx.dev, emotes-bot").ignoreHttpErrors(true).execute()
             return@mapNotNull if (result.statusCode() == 200 && result.contentType()
                     ?.startsWith("text/plain") == true
             ) {

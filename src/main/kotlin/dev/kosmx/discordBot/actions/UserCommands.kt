@@ -62,7 +62,7 @@ fun initUserCommands(bot: BotEventHandler) {
             val emoteId: Int? = pattern.find(event[url])?.groupValues?.get(4)?.toInt()
             if (emoteId != null) {
                 val response =
-                    Jsoup.connect("https://emotes.kosmx.dev/e/$emoteId").userAgent("emotes-bot.kt").execute()
+                    Jsoup.connect("https://emotes.kosmx.dev/e/$emoteId").userAgent("emotes-bot.kt").ignoreHttpErrors(true).execute()
 
                 val doc = response.takeIf { it.statusCode() == 200 }?.parse()
                     ?: kotlin.run { event.reply("can't access emote").setEphemeral(true).queue(); return@invoke }
