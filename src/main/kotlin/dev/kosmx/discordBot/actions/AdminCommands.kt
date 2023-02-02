@@ -6,12 +6,15 @@ import dev.kosmx.discordBot.command.SlashOptionType
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 
 fun initAdminCommands(bot: BotEventHandler) {
 
-    bot.ownerServerCommands += object : SlashCommand("msg", "message user or channel") {
+    bot.ownerServerCommands += object : SlashCommand("msg", "message user or channel", {
+        defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)
+    }) {
         val message = option("message", "message", SlashOptionType.STRING).required()
         val user = option("user", "user to send message", SlashOptionType.USER)
         val channel = option("channel", "channel to send message", SlashOptionType.CHANNEL)
@@ -58,7 +61,9 @@ fun initAdminCommands(bot: BotEventHandler) {
     }
 
     @file:Suppress("DuplicatedCode")
-    bot.ownerServerCommands += object : SlashCommand("setMailTo".lowercase(), "Sets the mailbot function endpoint to specified channel") {
+    bot.ownerServerCommands += object : SlashCommand("setMailTo".lowercase(), "Sets the mailbot function endpoint to specified channel", {
+        defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
+    }) {
         val channel = option("channel", description = "channel", SlashOptionType.CHANNEL).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
@@ -72,7 +77,9 @@ fun initAdminCommands(bot: BotEventHandler) {
     }
 
     @file:Suppress("DuplicatedCode")
-    bot.ownerServerCommands += object : SlashCommand("setEmoteTo".lowercase(), "Sets emote upload output to the specified channel") {
+    bot.ownerServerCommands += object : SlashCommand("setEmoteTo".lowercase(), "Sets emote upload output to the specified channel", {
+        defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
+    }) {
         val channel = option("channel", description = "channel", SlashOptionType.CHANNEL).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
@@ -85,7 +92,9 @@ fun initAdminCommands(bot: BotEventHandler) {
         }
     }
 
-    bot.ownerServerCommands += object : SlashCommand("setCommandSequence".lowercase(), "Sets the command char") {
+    bot.ownerServerCommands += object : SlashCommand("setCommandSequence".lowercase(), "Sets the command char", {
+        defaultPermissions = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR)
+    }) {
         val sequence = option("sequence", description = "start sequence, normally special chars", SlashOptionType.STRING).required()
 
         override fun invoke(event: SlashCommandInteractionEvent) {
