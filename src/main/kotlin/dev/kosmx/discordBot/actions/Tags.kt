@@ -57,7 +57,7 @@ object Tags {
 
         tags = File("tags.json").takeIf { it.isFile }?.inputStream()?.use { Json.decodeFromStream(it) } ?: tags
 
-        bot.ownerServerCommands += object : SlashCommand("tag", "Collection of helpful pre-defined messages") {
+        bot.commands += object : SlashCommand("tag", "Collection of helpful pre-defined messages") {
             val tag: String by option("id", "Tag ID", TagAutoCompleteString()).required()
 
             override fun invoke(event: SlashCommandInteractionEvent) {
@@ -67,7 +67,7 @@ object Tags {
             }
         }
 
-        bot.ownerServerCommands += CommandGroup("tags", "Collection of helpful pre-defined messages").also { commandGroup ->
+        bot.commands += CommandGroup("tags", "Collection of helpful pre-defined messages").also { commandGroup ->
             commandGroup += object : SlashCommand("add", "add a new tag, admin only") {
                 val tagId by option("id", "new tag id", SlashOptionType.STRING).required()
                 val text by option("text", "Tag content", SlashOptionType.STRING)
