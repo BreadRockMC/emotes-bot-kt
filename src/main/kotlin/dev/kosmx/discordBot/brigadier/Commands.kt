@@ -16,8 +16,8 @@ object Commands {
     val dispatcher = CommandDispatcher<DiscordCommandSource>()
 
     init {
-        dispatcher.register(literal<DiscordCommandSource?>("help")
-            .then(argument<DiscordCommandSource?, String?>("function", word())
+        dispatcher.register(literal<DiscordCommandSource>("help")
+            .then(argument<DiscordCommandSource, String>("function", word())
                 .executes { ctx ->
                     when(StringArgumentType.getString(ctx, "function").lowercase()) {
                         "postemote" -> "Please use /postemote slash command\nIt will send a preview before sending the embed to the server" // bad idea
@@ -36,14 +36,14 @@ object Commands {
             }
         )
 
-        dispatcher.register(literal<DiscordCommandSource?>("logs").executes { ctx ->
+        dispatcher.register(literal<DiscordCommandSource>("logs").executes { ctx ->
             ctx.source.event.channel.sendMessage("https://emotes.kosmx.dev/guide/logs").queue()
             0
         })
 
 
-        dispatcher.register(literal<DiscordCommandSource?>("stop")
-            .then(argument<DiscordCommandSource?, Boolean>("restart", BoolArgumentType.bool())
+        dispatcher.register(literal<DiscordCommandSource>("stop")
+            .then(argument<DiscordCommandSource, Boolean>("restart", BoolArgumentType.bool())
                 .executes { ctx ->
                     stopCommand(ctx, BoolArgumentType.getBool(ctx, "restart"))
                 }

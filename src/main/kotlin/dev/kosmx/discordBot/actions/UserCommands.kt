@@ -47,8 +47,8 @@ fun initUserCommands(bot: BotEventHandler) {
             }
             val message = event.replyEmbeds(embed.build()).setEphemeral(true)
             message.addActionRow(
-                Button.primary("postemote", "Send to channel"),
-                Button.success("uploademote", "Send to server"),
+                Button.primary("postemote", "Post #here"),
+                Button.success("uploademote", "Post in #emote-list"),
                 Button.danger("cancelmodal", "Cancel")
             ).queue()
         }
@@ -96,8 +96,8 @@ fun initUserCommands(bot: BotEventHandler) {
                     }
                     val message = event.replyEmbeds(embed.build()).setEphemeral(true)
                     message.addActionRow(
-                        Button.primary("postemote", "Send to channel"),
-                        Button.success("uploademote", "Send to server"),
+                        Button.primary("postemote", "Post #here"),
+                        Button.success("uploademote", "Post in #emote-list"),
                         Button.danger("cancelmodal", "Cancel")
                     ).queue()
                 } else {
