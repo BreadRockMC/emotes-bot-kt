@@ -6,10 +6,13 @@ import dev.kosmx.discordBot.command.SlashOptionType
 import dev.kosmx.discordBot.getTextChannelById
 import dev.kosmx.playerAnim.core.data.gson.AnimationSerializing
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.FileUpload
 import org.jsoup.Jsoup
 import java.awt.Color
+import java.io.InputStream
 
 fun initUserCommands(bot: BotEventHandler) {
 
@@ -122,11 +125,34 @@ fun initUserCommands(bot: BotEventHandler) {
             interaction.hook.editOriginal("Uploaded.").queue()
             val target = event.jda.getTextChannelById(bot.config.emoteChannel)
 
-            //TODO: upload logic
-            target?.sendMessageEmbeds(origEmbed)?.queue()
+            var imageData: InputStream? = null
+            var jsonData: Pair<InputStream, String>? = null
+            val embed: MessageEmbed =
+                if (origEmbed.url?.startsWith("https://emotes.kosmx.dev/") == true
+                ) origEmbed else EmbedBuilder().apply {
+                    copyFrom(origEmbed)
+                    //setTitle(event[emoteTitle], event[jsonFile].url)
+                    //setImage(event[image]?.url)
+                    origEmbed.url?.let {
+                        val title = it.substringAfterLast("/")
+                        jsonData = it.download().inputStream() to title
+                        setTitle(origEmbed.title, "attachment://$title")
+                    }
+                    origEmbed.image?.proxy?.download()?.get()?.let {
+                        imageData = it
+                        setImage("attachment://icon.png")
+                    }
+                }.build()
+
+            target?.sendMessageEmbeds(embed)?.apply {
+                imageData?.let { addFiles(FileUpload.fromData(it, "icon.png")) }
+                jsonData?.let { addFiles(FileUpload.fromData(it.first, it.second)) }
+            }?.queue()
         }
     }
     bot.buttonEvents += IdentifiableInteractionHandler("cancelmodal") { event ->
         event.interaction.editComponents().queue()
     }
+
 }
+fun String.download(): ByteArray = Jsoup.connect(this).userAgent("emotes-bot.kt").ignoreHttpErrors(true).execute().bodyAsBytes()
